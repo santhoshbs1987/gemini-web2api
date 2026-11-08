@@ -1,0 +1,61 @@
+name: gemini-web2api
+services:
+  gemini-web2api:
+    cpu_shares: 90
+    command: []
+    container_name: gemini-web2api
+    deploy:
+      resources:
+        limits:
+          memory: 23972M
+    hostname: gemini-web2api
+    image: ghcr.io/santhoshbs1987/gemini-web2api:latest
+    labels:
+      icon: https://img.icons8.com/color/256/gemini-ai.jpg
+    ports:
+      - target: 8081
+        published: "8081"
+        protocol: tcp
+    restart: unless-stopped
+    volumes:
+      - type: bind
+        source: /DATA/AppData/gemini-web2api/config.json
+        target: /app/config.json
+    x-casaos:
+      volumes:
+        - container: /app/config.json
+          description:
+            en_us: Configuration file (config.json)
+        - container: /app/cookie.txt
+          description:
+            en_us: Optional session cookies for Pro models
+    devices: []
+    cap_add: []
+    environment: []
+    network_mode: bridge
+    privileged: false
+x-casaos:
+  architectures:
+    - arm64
+    - amd64
+  author: ikhsan3adi
+  category: AI
+  description:
+    en_us: High-performance Go proxy converting Google Gemini's web interface into
+      an OpenAI-compatible API. Zero cost, supports SSE streaming,
+      vision/multimodal uploads, and TLS impersonation.
+  developer: ikhsan3adi
+  hostname: 198.18.0.1
+  icon: https://img.icons8.com/color/256/gemini-ai.jpg
+  index: /
+  is_uncontrolled: false
+  main: gemini-web2api
+  port_map: "8081"
+  scheme: http
+  store_app_id: gemini-web2api
+  tagline:
+    en_us: Google Gemini Web to OpenAI API Proxy
+  thumbnail: https://raw.githubusercontent.com/Sophomoresty/gemini-web2api/main/logo.png
+  title:
+    custom: ""
+    en_us: Gemini Web2API
