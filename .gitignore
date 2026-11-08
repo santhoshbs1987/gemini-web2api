@@ -25,5 +25,8 @@ gemini-web2api
 
 # Auth credentials
 gemini-auth.json
+config.json
+cookie.txt
+*.cookie*
 
 .ignore/
