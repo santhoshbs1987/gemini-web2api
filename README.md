@@ -17,7 +17,7 @@ This is a complete Go rewrite of the original [Python gemini-web2api](https://gi
 - **Multimodal (Vision)**: Fully supports sending images (`image_url` / base64) to Gemini using Scotty Resumable Upload protocol natively with built-in image compression.
 - **TLS Impersonation**: Built-in support to bypass Cloudflare/WAF by mimicking Chrome/Edge TLS fingerprints using `tls-client` 🔥.
 - **Tool Calling**: Full function calling support (OpenAI format).
-- **Multiple Models**: Flash (3.6), Extended Thinking (20k+ char output), Pro, Auto, Lite.
+- **Multiple Models**: Flash (3.8), Extended Thinking (20k+ char output), Pro, Auto, Lite, Frontier (Gemini 4 Argon & Carbon).
 - **Thinking Depth**: Adjustable reasoning via `@think=N` suffix (0=deepest, 4=shallowest).
 - **Web Search**: Built-in internet access (Gemini's native search).
 - **High Performance**: Pure Go static binary with high concurrent SSE streaming throughput and minimal memory footprint.
@@ -171,19 +171,21 @@ Supports Google native API endpoints:
 
 ## Available Models
 
-| Model                            | Description                                  | Output          |
-| -------------------------------- | -------------------------------------------- | --------------- |
-| `gemini-4-argon`                 | Frontier model for complex tasks (needs Pro) | **~20k+ chars** |
-| `argon`, `gemini-4`              | Aliases for gemini-4-argon                   | **~20k+ chars** |
-| `gemini-3.8-flash`               | Latest all-around model (Gemini 3.8 Flash)   | ~12k chars      |
-| `gemini-3.7-flash`               | All-around model (Gemini 3.7 Flash)          | ~12k chars      |
-| `gemini-3.6-flash`               | All-around model (Gemini 3.6 Flash)          | ~12k chars      |
-| `gemini-3.5-flash`               | Alias for gemini-3.6-flash                   | ~12k chars      |
-| `gemini-3.5-flash-thinking`      | Extended thinking, longest output            | **~20k chars**  |
-| `gemini-3.5-flash-thinking-lite` | Adaptive thinking depth                      | ~15k chars      |
-| `gemini-3.1-pro`                 | Advanced math & code (needs Pro cookie)      | ~12k chars      |
-| `gemini-auto`                    | Auto model selection                         | varies          |
-| `gemini-flash-lite`              | Fastest answers, lightweight                 | ~10k chars      |
+| Model                                                       | Description                                                         | Output          |
+| ----------------------------------------------------------- | ------------------------------------------------------------------- | --------------- |
+| `gemini-4-carbon`, `carbon`                                 | Frontier model for complex reasoning and agentic tasks (needs Pro)  | **~20k+ chars** |
+| `gemini-4-argon`, `argon`, `gemini-4`                       | Frontier model for complex tasks (needs Pro)                        | **~20k+ chars** |
+| `gemini-3.8-flash`, `gemini-flash`                          | Latest all-around model (Gemini 3.8 Flash, default)                 | ~12k chars      |
+| `gemini-3.8-flash-thinking`, `gemini-flash-thinking`        | Deep thinking mode for Gemini 3.8 Flash                             | **~20k chars**  |
+| `gemini-3.7-flash`                                          | All-around model (Gemini 3.7 Flash)                                 | ~12k chars      |
+| `gemini-3.7-flash-thinking`                                 | Deep thinking mode for Gemini 3.7 Flash                             | **~20k chars**  |
+| `gemini-3.6-flash`, `gemini-3.5-flash`                      | Fast all-around model                                               | ~12k chars      |
+| `gemini-3.5-flash-thinking`                                 | Extended thinking, longest output                                   | **~20k chars**  |
+| `gemini-3.5-flash-thinking-lite`                            | Adaptive thinking depth                                             | ~15k chars      |
+| `gemini-3.1-pro`, `gemini-pro`                              | Advanced math & code (needs Pro cookie)                             | ~12k chars      |
+| `gemini-auto`                                               | Auto model selection                                                | varies          |
+| `gemini-flash-lite`                                         | Fastest answers, lightweight                                        | ~10k chars      |
+| `gemini-2.5-*`, `gemini-2.0-*`, `gemini-1.5-*`              | Backward-compatibility aliases for Flash, Pro, and Thinking modes   | varies          |
 
 ### Thinking Depth
 

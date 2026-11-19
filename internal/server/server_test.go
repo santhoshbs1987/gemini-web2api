@@ -226,8 +226,8 @@ func TestModelHeaders(t *testing.T) {
 	rec2 := httptest.NewRecorder()
 	handler.ServeHTTP(rec2, req2)
 
-	if got := rec2.Header().Get("X-Resolved-Model"); got != "gemini-3.6-flash" {
-		t.Errorf("Expected X-Resolved-Model=gemini-3.6-flash, got %q", got)
+	if got := rec2.Header().Get("X-Resolved-Model"); got != "gemini-3.8-flash" {
+		t.Errorf("Expected X-Resolved-Model=gemini-3.8-flash, got %q", got)
 	}
 	if got := rec2.Header().Get("X-Model-Fallback"); got != "true" {
 		t.Errorf("Expected X-Model-Fallback=true for unknown model, got %q", got)
