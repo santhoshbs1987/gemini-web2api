@@ -186,7 +186,7 @@ gemini
 |`gemini-3.5-flash-thinking`|延伸思维，最长产出 |**约 20,000 个字符**|
 |`gemini-3.5-flash-thinking-lite`|适应性思维深度|约 15,000 个字符 |
 |`gemini-3.1-pro`,`gemini-pro`|高级数学和代码（需要 Pro cookie）|约 12k 个字符 |
-|`gemini-auto`|汽车选型|变化 |
+|`gemini-auto`|自动模型选择|变化 |
 |`gemini-flash-lite`|最快的答案，轻量级 | 〜10k 个字符 |
 |`gemini-2.5-*`,`gemini-2.0-*`,`gemini-1.5-*`| Flash、Pro 及思考模式的向后兼容别名 |变化 |
 
