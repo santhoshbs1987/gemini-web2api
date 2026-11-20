@@ -17,7 +17,7 @@ This is a complete Go rewrite of the original [Python gemini-web2api](https://gi
 - **Multimodal (Vision)**: Fully supports sending images (`image_url` / base64) to Gemini using Scotty Resumable Upload protocol natively with built-in image compression.
 - **TLS Impersonation**: Built-in support to bypass Cloudflare/WAF by mimicking Chrome/Edge TLS fingerprints using `tls-client` 🔥.
 - **Tool Calling**: Full function calling support (OpenAI format).
-- **Multiple Models**: Flash (3.8), Extended Thinking (20k+ char output), Pro, Auto, Lite, Frontier (Gemini 4 Argon & Carbon).
+- **Multiple Models**: Flash (3.8), Extended Thinking (20k+ char output), Pro, Auto, Lite, Frontier (Gemini 4: Carbon, Argon, Neon, Hydrogen).
 - **Thinking Depth**: Adjustable reasoning via `@think=N` suffix (0=deepest, 4=shallowest).
 - **Web Search**: Built-in internet access (Gemini's native search).
 - **High Performance**: Pure Go static binary with high concurrent SSE streaming throughput and minimal memory footprint.
@@ -175,6 +175,8 @@ Supports Google native API endpoints:
 | ----------------------------------------------------------- | ------------------------------------------------------------------- | --------------- |
 | `gemini-4-carbon`, `carbon`                                 | Frontier model for complex reasoning and agentic tasks (needs Pro)  | **~20k+ chars** |
 | `gemini-4-argon`, `argon`, `gemini-4`                       | Frontier model for complex tasks (needs Pro)                        | **~20k+ chars** |
+| `gemini-4-neon`, `neon`                                     | Balanced agentic model for tool use and engineering (needs Pro)     | **~20k+ chars** |
+| `gemini-4-hydrogen`, `hydrogen`                             | Fast, lightweight model for everyday execution (needs Pro)          | **~20k+ chars** |
 | `gemini-3.8-flash`, `gemini-flash`                          | Latest all-around model (Gemini 3.8 Flash, default)                 | ~12k chars      |
 | `gemini-3.8-flash-thinking`, `gemini-flash-thinking`        | Deep thinking mode for Gemini 3.8 Flash                             | **~20k chars**  |
 | `gemini-3.7-flash`                                          | All-around model (Gemini 3.7 Flash)                                 | ~12k chars      |

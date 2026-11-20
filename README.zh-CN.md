@@ -18,7 +18,7 @@
 * **多式联运（视觉）**：完全支持发送图像（`image_url`/base64) 到 Gemini，使用 Scotty 可恢复上传协议本机内置图像压缩。
 * **TLS 模拟**：内置支持通过模仿 Chrome/Edge TLS 指纹来绕过 Cloudflare/WAF`tls-client`🔥.
 * **工具调用**：全函数调用支持（OpenAI格式）。
-* **多种型号**：Flash (3.8)、Extend Thinking（20k+ 字符输出）、Pro、Auto、Lite、Frontier（Gemini 4 Argon 与 Carbon）。
+* **多种型号**：Flash (3.8)、Extend Thinking（20k+ 字符输出）、Pro、Auto、Lite、Frontier（Gemini 4：Carbon、Argon、Neon、Hydrogen）。
 * **思考深度**：可通过调整推理`@think=N`后缀（0=最深，4=最浅）。
 * **网页搜索**：内置互联网访问（Gemini 的本机搜索）。
 * **高性能**：纯 Go 静态二进制文件，具有高并发 SSE 流吞吐量和最小的内存占用。
@@ -177,6 +177,8 @@ gemini
 |`gemini-4-carbon`,`carbon`|复杂推理与智能体任务的前沿模型（需要 Pro）|**~20k+ 字符**|
 |`gemini-4-argon`|复杂任务的前沿模型（需要 Pro）|**~20k+ 字符**|
 |`argon`,`gemini-4`| Gemini-4-argon 的别名 |**~20k+ 字符**|
+|`gemini-4-neon`,`neon`|工具调用与软件工程的平衡智能体模型（需要 Pro）|**~20k+ 字符**|
+|`gemini-4-hydrogen`,`hydrogen`|快速轻量日常执行模型（需要 Pro）|**~20k+ 字符**|
 |`gemini-3.8-flash`,`gemini-flash`|最新全能机型（Gemini 3.8 Flash，默认）|约 12k 个字符 |
 |`gemini-3.8-flash-thinking`,`gemini-flash-thinking`| Gemini 3.8 Flash 深度思考模式 |**约 20,000 个字符**|
 |`gemini-3.7-flash`|全能机型（Gemini 3.7 Flash）|约 12k 个字符 |

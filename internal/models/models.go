@@ -61,6 +61,42 @@ var MODELS = map[string]Model{
 		Header: "95a4c0abcba24364",
 		Desc:   "Alias for gemini-4-argon",
 	},
+	"gemini-4-neon": {
+		Mode:   8,
+		Think:  4,
+		Header: "95a4c0abcba24364",
+		Desc:   "Balanced agentic model for tool use and software engineering (Gemini 4 Neon, requires Google AI Pro cookie)",
+	},
+	"gemini-4-neon-thinking": {
+		Mode:   8,
+		Think:  0,
+		Header: "95a4c0abcba24364",
+		Desc:   "Deep thinking mode for Gemini 4 Neon (~20k chars output)",
+	},
+	"neon": {
+		Mode:   8,
+		Think:  4,
+		Header: "95a4c0abcba24364",
+		Desc:   "Alias for gemini-4-neon",
+	},
+	"gemini-4-hydrogen": {
+		Mode:   8,
+		Think:  4,
+		Header: "95a4c0abcba24364",
+		Desc:   "Fast lightweight model for everyday execution (Gemini 4 Hydrogen, requires Google AI Pro cookie)",
+	},
+	"gemini-4-hydrogen-thinking": {
+		Mode:   8,
+		Think:  0,
+		Header: "95a4c0abcba24364",
+		Desc:   "Thinking mode for Gemini 4 Hydrogen",
+	},
+	"hydrogen": {
+		Mode:   8,
+		Think:  4,
+		Header: "95a4c0abcba24364",
+		Desc:   "Alias for gemini-4-hydrogen",
+	},
 	"gemini-4-thinking": {
 		Mode:   8,
 		Think:  0,
