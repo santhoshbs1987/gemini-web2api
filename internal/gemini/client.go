@@ -65,7 +65,11 @@ func NewClient(cfg config.Config) *Client {
 
 	if req == nil {
 		transport := &http.Transport{
-			DisableCompression: true,
+			DisableCompression:  true,
+			ForceAttemptHTTP2:   true,
+			MaxIdleConns:        100,
+			MaxIdleConnsPerHost: 20,
+			IdleConnTimeout:     90 * time.Second,
 		}
 
 		if cfg.Proxy != "" {
