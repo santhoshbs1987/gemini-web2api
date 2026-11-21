@@ -15,7 +15,7 @@ require (
 	github.com/bogdanfinn/quic-go-utls v1.0.13-utls // indirect
 	github.com/bogdanfinn/utls v1.8.2-barnius // indirect
 	github.com/bogdanfinn/websocket v1.5.9-barnius // indirect
-	github.com/klauspost/compress v1.20.4 // indirect
+	github.com/klauspost/compress v1.20.5 // indirect
 	github.com/molecule-man/go-brrr v1.3.1 // indirect
 	github.com/quic-go/qpack v0.6.0 // indirect
 	github.com/tam7t/hpkp v0.0.0-20160821193359-2b70b4024ed5 // indirect
