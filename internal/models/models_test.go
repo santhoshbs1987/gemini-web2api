@@ -64,6 +64,46 @@ func TestResolve(t *testing.T) {
 			wantErr:      false,
 		},
 		{
+			input:        "gemini-4-carbon",
+			defaultName:  "gemini-3.6-flash",
+			wantName:     "gemini-4-carbon",
+			wantMode:     8,
+			wantThink:    4,
+			wantHeader:   "f44d2958d1f0189a",
+			wantFallback: false,
+			wantErr:      false,
+		},
+		{
+			input:        "carbon",
+			defaultName:  "gemini-3.6-flash",
+			wantName:     "carbon",
+			wantMode:     8,
+			wantThink:    4,
+			wantHeader:   "f44d2958d1f0189a",
+			wantFallback: false,
+			wantErr:      false,
+		},
+		{
+			input:        "gemini-4-neon",
+			defaultName:  "gemini-3.6-flash",
+			wantName:     "gemini-4-neon",
+			wantMode:     3,
+			wantThink:    4,
+			wantHeader:   "e6fa609c3fa255c0",
+			wantFallback: false,
+			wantErr:      false,
+		},
+		{
+			input:        "neon@think=2",
+			defaultName:  "gemini-3.6-flash",
+			wantName:     "neon",
+			wantMode:     3,
+			wantThink:    2,
+			wantHeader:   "e6fa609c3fa255c0",
+			wantFallback: false,
+			wantErr:      false,
+		},
+		{
 			input:        "argon@think=0",
 			defaultName:  "gemini-3.6-flash",
 			wantName:     "argon",
@@ -97,7 +137,7 @@ func TestResolve(t *testing.T) {
 			wantName:     "gemini-4-carbon",
 			wantMode:     8,
 			wantThink:    4,
-			wantHeader:   "95a4c0abcba24364",
+			wantHeader:   "f44d2958d1f0189a",
 			wantFallback: false,
 			wantErr:      false,
 		},
@@ -107,7 +147,7 @@ func TestResolve(t *testing.T) {
 			wantName:     "carbon",
 			wantMode:     8,
 			wantThink:    4,
-			wantHeader:   "95a4c0abcba24364",
+			wantHeader:   "f44d2958d1f0189a",
 			wantFallback: false,
 			wantErr:      false,
 		},
@@ -162,7 +202,7 @@ func TestResolve(t *testing.T) {
 			wantName:     "gemini-4-carbon-thinking",
 			wantMode:     8,
 			wantThink:    0,
-			wantHeader:   "95a4c0abcba24364",
+			wantHeader:   "f44d2958d1f0189a",
 			wantFallback: false,
 			wantErr:      false,
 		},
@@ -170,9 +210,9 @@ func TestResolve(t *testing.T) {
 			input:        "gemini-4-neon",
 			defaultName:  "gemini-3.8-flash",
 			wantName:     "gemini-4-neon",
-			wantMode:     8,
+			wantMode:     3,
 			wantThink:    4,
-			wantHeader:   "95a4c0abcba24364",
+			wantHeader:   "e6fa609c3fa255c0",
 			wantFallback: false,
 			wantErr:      false,
 		},
@@ -180,9 +220,9 @@ func TestResolve(t *testing.T) {
 			input:        "neon",
 			defaultName:  "gemini-3.8-flash",
 			wantName:     "neon",
-			wantMode:     8,
+			wantMode:     3,
 			wantThink:    4,
-			wantHeader:   "95a4c0abcba24364",
+			wantHeader:   "e6fa609c3fa255c0",
 			wantFallback: false,
 			wantErr:      false,
 		},
@@ -190,9 +230,9 @@ func TestResolve(t *testing.T) {
 			input:        "gemini-4-neon-thinking",
 			defaultName:  "gemini-3.8-flash",
 			wantName:     "gemini-4-neon-thinking",
-			wantMode:     8,
+			wantMode:     3,
 			wantThink:    0,
-			wantHeader:   "95a4c0abcba24364",
+			wantHeader:   "e6fa609c3fa255c0",
 			wantFallback: false,
 			wantErr:      false,
 		},
@@ -200,9 +240,9 @@ func TestResolve(t *testing.T) {
 			input:        "gemini-4-hydrogen",
 			defaultName:  "gemini-3.8-flash",
 			wantName:     "gemini-4-hydrogen",
-			wantMode:     8,
+			wantMode:     1,
 			wantThink:    4,
-			wantHeader:   "95a4c0abcba24364",
+			wantHeader:   "56fdd199312815e2",
 			wantFallback: false,
 			wantErr:      false,
 		},
@@ -210,9 +250,19 @@ func TestResolve(t *testing.T) {
 			input:        "hydrogen",
 			defaultName:  "gemini-3.8-flash",
 			wantName:     "hydrogen",
-			wantMode:     8,
+			wantMode:     1,
 			wantThink:    4,
-			wantHeader:   "95a4c0abcba24364",
+			wantHeader:   "56fdd199312815e2",
+			wantFallback: false,
+			wantErr:      false,
+		},
+		{
+			input:        "gemini-4-hydrogen-thinking",
+			defaultName:  "gemini-3.8-flash",
+			wantName:     "gemini-4-hydrogen-thinking",
+			wantMode:     1,
+			wantThink:    0,
+			wantHeader:   "56fdd199312815e2",
 			wantFallback: false,
 			wantErr:      false,
 		},
@@ -222,7 +272,7 @@ func TestResolve(t *testing.T) {
 			wantName:     "gemini-4-thinking",
 			wantMode:     8,
 			wantThink:    0,
-			wantHeader:   "95a4c0abcba24364",
+			wantHeader:   "f44d2958d1f0189a",
 			wantFallback: false,
 			wantErr:      false,
 		},
@@ -241,7 +291,7 @@ func TestResolve(t *testing.T) {
 			wantName:     "gemini-4-carbon",
 			wantMode:     8,
 			wantThink:    4,
-			wantHeader:   "95a4c0abcba24364",
+			wantHeader:   "f44d2958d1f0189a",
 			wantFallback: false,
 			wantErr:      false,
 		},
@@ -359,5 +409,92 @@ func TestResolveEnhanced(t *testing.T) {
 	}
 	if res.Extra == nil || res.Extra[31] != 2 || res.Extra[80] != 3 {
 		t.Errorf("Expected extra fields {31:2, 80:3}, got %v", res.Extra)
+	}
+}
+
+func TestResolveDynamic(t *testing.T) {
+	dynamic := []DynamicModel{
+		{Name: "gemini-4-krypton", Ticket: "krypton-ticket", Desc: "4 Krypton", Mode: 8},
+		{Name: "gemini-4-xenon", Ticket: "xenon-ticket", Desc: "4 Xenon", Mode: 8},
+	}
+
+	t.Run("dynamic exact name", func(t *testing.T) {
+		res, err := Resolve("gemini-4-krypton", "gemini-3.6-flash", dynamic...)
+		if err != nil {
+			t.Fatalf("Unexpected error: %v", err)
+		}
+		if res.Name != "gemini-4-krypton" || res.Mode != 8 || res.Header != "krypton-ticket" {
+			t.Errorf("Unexpected resolved model: %+v", res)
+		}
+		if res.Fallback {
+			t.Error("Expected dynamic model not to be marked as fallback")
+		}
+	})
+
+	t.Run("dynamic alias without prefix", func(t *testing.T) {
+		res, err := Resolve("4-xenon", "gemini-3.6-flash", dynamic...)
+		if err != nil {
+			t.Fatalf("Unexpected error: %v", err)
+		}
+		if res.Name != "gemini-4-xenon" || res.Header != "xenon-ticket" {
+			t.Errorf("Unexpected resolved model: %+v", res)
+		}
+	})
+
+	t.Run("dynamic think override", func(t *testing.T) {
+		res, err := Resolve("gemini-4-krypton@think=2", "gemini-3.6-flash", dynamic...)
+		if err != nil {
+			t.Fatalf("Unexpected error: %v", err)
+		}
+		if res.Think != 2 {
+			t.Errorf("res.Think = %d, want 2", res.Think)
+		}
+	})
+
+	t.Run("static takes precedence over dynamic", func(t *testing.T) {
+		override := []DynamicModel{
+			{Name: "gemini-4-carbon", Ticket: "different-ticket", Mode: 99},
+		}
+		res, err := Resolve("gemini-4-carbon", "gemini-3.6-flash", override...)
+		if err != nil {
+			t.Fatalf("Unexpected error: %v", err)
+		}
+		if res.Header != "f44d2958d1f0189a" || res.Mode != 8 {
+			t.Errorf("Expected static Carbon entry, got %+v", res)
+		}
+	})
+
+	t.Run("unknown falls back", func(t *testing.T) {
+		res, err := Resolve("gemini-9.9-fake", "gemini-3.6-flash", dynamic...)
+		if err != nil {
+			t.Fatalf("Unexpected error: %v", err)
+		}
+		if !res.Fallback || res.Name != "gemini-3.6-flash" {
+			t.Errorf("Unexpected fallback result: %+v", res)
+		}
+	})
+}
+
+func TestDynamicNameFromDisplay(t *testing.T) {
+	tests := []struct {
+		display string
+		want    string
+		ok      bool
+	}{
+		{display: "4 Hydrogen", want: "gemini-4-hydrogen", ok: true},
+		{display: "4 Carbon", want: "gemini-4-carbon", ok: true},
+		{display: "3.8 Flash", want: "gemini-3.8-flash", ok: true},
+		{display: "3.5 Flash-Lite", want: "gemini-3.5-flash-lite", ok: true},
+		{display: " 4  Neon ", want: "gemini-4-neon", ok: true},
+		{display: "", ok: false},
+		{display: "Weird", ok: false},
+		{display: "X 4", ok: false},
+	}
+
+	for _, tt := range tests {
+		got, ok := DynamicNameFromDisplay(tt.display)
+		if ok != tt.ok || got != tt.want {
+			t.Errorf("DynamicNameFromDisplay(%q) = (%q, %v), want (%q, %v)", tt.display, got, ok, tt.want, tt.ok)
+		}
 	}
 }

@@ -18,23 +18,33 @@ type Model struct {
 	Extra  map[int]any `json:"extra,omitempty"`
 }
 
+// DynamicModel represents an upstream model discovered at runtime from the
+// account roster (otAQ7b). Ticket is the routing hash sent in the
+// x-goog-ext-525001261-jspb header and Mode is the upstream mode category.
+type DynamicModel struct {
+	Name   string
+	Ticket string
+	Desc   string
+	Mode   int
+}
+
 var MODELS = map[string]Model{
 	"gemini-4-carbon": {
 		Mode:   8,
 		Think:  4,
-		Header: "95a4c0abcba24364",
-		Desc:   "Frontier model for complex reasoning and agentic tasks (Gemini 4 Carbon, requires Google AI Pro cookie)",
+		Header: "f44d2958d1f0189a",
+		Desc:   "Long-horizon agentic reasoning (Gemini 4 Carbon, Ultra accounts)",
 	},
 	"gemini-4-carbon-thinking": {
 		Mode:   8,
 		Think:  0,
-		Header: "95a4c0abcba24364",
+		Header: "f44d2958d1f0189a",
 		Desc:   "Deep thinking mode for Gemini 4 Carbon (~20k chars output)",
 	},
 	"carbon": {
 		Mode:   8,
 		Think:  4,
-		Header: "95a4c0abcba24364",
+		Header: "f44d2958d1f0189a",
 		Desc:   "Alias for gemini-4-carbon",
 	},
 	"gemini-4-argon": {
@@ -62,45 +72,45 @@ var MODELS = map[string]Model{
 		Desc:   "Alias for gemini-4-argon",
 	},
 	"gemini-4-neon": {
-		Mode:   8,
+		Mode:   3,
 		Think:  4,
-		Header: "95a4c0abcba24364",
-		Desc:   "Balanced agentic model for tool use and software engineering (Gemini 4 Neon, requires Google AI Pro cookie)",
+		Header: "e6fa609c3fa255c0",
+		Desc:   "Deeper analysis and coding (Gemini 4 Neon, Pro/Ultra accounts)",
 	},
 	"gemini-4-neon-thinking": {
-		Mode:   8,
+		Mode:   3,
 		Think:  0,
-		Header: "95a4c0abcba24364",
+		Header: "e6fa609c3fa255c0",
 		Desc:   "Deep thinking mode for Gemini 4 Neon (~20k chars output)",
 	},
 	"neon": {
-		Mode:   8,
+		Mode:   3,
 		Think:  4,
-		Header: "95a4c0abcba24364",
+		Header: "e6fa609c3fa255c0",
 		Desc:   "Alias for gemini-4-neon",
 	},
 	"gemini-4-hydrogen": {
-		Mode:   8,
+		Mode:   1,
 		Think:  4,
-		Header: "95a4c0abcba24364",
-		Desc:   "Fast lightweight model for everyday execution (Gemini 4 Hydrogen, requires Google AI Pro cookie)",
+		Header: "56fdd199312815e2",
+		Desc:   "Everyday coding and agentic workflows (Gemini 4 Hydrogen)",
 	},
 	"gemini-4-hydrogen-thinking": {
-		Mode:   8,
+		Mode:   1,
 		Think:  0,
-		Header: "95a4c0abcba24364",
+		Header: "56fdd199312815e2",
 		Desc:   "Thinking mode for Gemini 4 Hydrogen",
 	},
 	"hydrogen": {
-		Mode:   8,
+		Mode:   1,
 		Think:  4,
-		Header: "95a4c0abcba24364",
+		Header: "56fdd199312815e2",
 		Desc:   "Alias for gemini-4-hydrogen",
 	},
 	"gemini-4-thinking": {
 		Mode:   8,
 		Think:  0,
-		Header: "95a4c0abcba24364",
+		Header: "f44d2958d1f0189a",
 		Desc:   "Alias for frontier thinking model (gemini-4-carbon-thinking)",
 	},
 	"gemini-3.8-flash": {
@@ -242,7 +252,9 @@ const DefaultModelName = "gemini-3.8-flash"
 // It supports model name suffixes like "@think=N" (e.g. "gemini-3.8-flash@think=0")
 // to dynamically override the model's default thinking depth without modifying the model mapping.
 // It automatically normalizes whitespace, strips "models/" SDK prefixes, and supports case-insensitive lookups.
-func Resolve(modelName, defaultName string) (Resolved, error) {
+// Optional dynamic models discovered from the account roster are consulted when the name is not
+// present in the static registry; static entries always take precedence.
+func Resolve(modelName, defaultName string, dynamic ...DynamicModel) (Resolved, error) {
 	defaultName = strings.TrimSpace(defaultName)
 	defaultName = strings.TrimPrefix(defaultName, "models/")
 	if defaultName == "" {
@@ -287,6 +299,19 @@ func Resolve(modelName, defaultName string) (Resolved, error) {
 
 	fallback := false
 	if !exists {
+		if dm, ok := lookupDynamic(modelName, dynamic); ok {
+			thinkMode := 4
+			if thinkOverride != nil {
+				thinkMode = *thinkOverride
+			}
+			return Resolved{
+				Name:   dm.Name,
+				Mode:   dm.Mode,
+				Think:  thinkMode,
+				Header: dm.Ticket,
+				Extra:  nil,
+			}, nil
+		}
 		log.Printf("Unknown model '%s', falling back to '%s'", modelName, defaultName)
 		modelName = defaultName
 		cfg = defaultCfg
@@ -306,4 +331,31 @@ func Resolve(modelName, defaultName string) (Resolved, error) {
 		Fallback: fallback,
 		Extra:    cfg.Extra,
 	}, nil
+}
+
+func lookupDynamic(modelName string, dynamic []DynamicModel) (DynamicModel, bool) {
+	name := strings.ToLower(modelName)
+	for _, dm := range dynamic {
+		candidate := strings.ToLower(dm.Name)
+		if candidate == name || strings.TrimPrefix(candidate, "gemini-") == name {
+			return dm, true
+		}
+	}
+	return DynamicModel{}, false
+}
+
+// DynamicNameFromDisplay converts an upstream display label such as "4 Hydrogen"
+// or "3.8 Flash" into an API model name like "gemini-4-hydrogen".
+func DynamicNameFromDisplay(display string) (string, bool) {
+	fields := strings.Fields(strings.TrimSpace(display))
+	if len(fields) != 2 {
+		return "", false
+	}
+	version := fields[0]
+	if version[0] < '0' || version[0] > '9' {
+		return "", false
+	}
+	label := strings.ToLower(fields[1])
+	label = strings.ReplaceAll(label, " ", "-")
+	return "gemini-" + version + "-" + label, true
 }
