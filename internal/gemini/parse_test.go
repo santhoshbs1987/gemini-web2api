@@ -1,6 +1,8 @@
 package gemini
 
 import (
+	"encoding/json"
+	"strings"
 	"testing"
 )
 
@@ -41,5 +43,53 @@ func TestIsBardError(t *testing.T) {
 	noErr := "200 OK standard response chunk"
 	if _, ok := IsBardError(noErr); ok {
 		t.Errorf("IsBardError should be false for normal string")
+	}
+}
+
+func TestExtractTextsFromLine(t *testing.T) {
+	inner := make([]any, 5)
+	inner[0] = strings.Repeat("metadata_filler_string_", 10)
+	inner[4] = []any{[]any{"c_1", []any{"Hello from Gemini!"}}}
+	innerBytes, _ := json.Marshal(inner)
+	outer := []any{[]any{"wrb.fr", nil, string(innerBytes)}}
+	lineBytes, _ := json.Marshal(outer)
+
+	texts := ExtractTextsFromLine(string(lineBytes))
+	if len(texts) != 1 || texts[0] != "Hello from Gemini!" {
+		t.Fatalf("ExtractTextsFromLine got %v, want ['Hello from Gemini!']", texts)
+	}
+}
+
+func TestStreamParserFeed(t *testing.T) {
+	parser := NewStreamParser()
+
+	// Chunk 1
+	inner1 := make([]any, 5)
+	inner1[0] = strings.Repeat("filler_", 20)
+	inner1[4] = []any{[]any{"c_1", []any{"Hello"}}}
+	b1, _ := json.Marshal(inner1)
+	o1, _ := json.Marshal([]any{[]any{"wrb.fr", nil, string(b1)}})
+
+	deltas1, err := parser.Feed(string(o1) + "\n")
+	if err != nil {
+		t.Fatalf("Feed chunk 1 error: %v", err)
+	}
+	if len(deltas1) != 1 || deltas1[0] != "Hello" {
+		t.Fatalf("Feed chunk 1 deltas = %v, want ['Hello']", deltas1)
+	}
+
+	// Chunk 2 (cumulative: "Hello world")
+	inner2 := make([]any, 5)
+	inner2[0] = strings.Repeat("filler_", 20)
+	inner2[4] = []any{[]any{"c_1", []any{"Hello world"}}}
+	b2, _ := json.Marshal(inner2)
+	o2, _ := json.Marshal([]any{[]any{"wrb.fr", nil, string(b2)}})
+
+	deltas2, err := parser.Feed(string(o2) + "\n")
+	if err != nil {
+		t.Fatalf("Feed chunk 2 error: %v", err)
+	}
+	if len(deltas2) != 1 || deltas2[0] != " world" {
+		t.Fatalf("Feed chunk 2 deltas = %v, want [' world']", deltas2)
 	}
 }

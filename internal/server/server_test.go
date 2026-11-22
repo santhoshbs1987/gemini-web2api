@@ -2,6 +2,7 @@ package server
 
 import (
 	"encoding/json"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -329,5 +330,134 @@ func TestDynamicModelsCaching(t *testing.T) {
 	}
 	if len(m1) > 0 && &m1[0] != &m2[0] {
 		t.Errorf("expected cached slice to be reused")
+	}
+}
+
+type mockRequester struct {
+	doFunc func(req *http.Request) (*http.Response, error)
+}
+
+func (m *mockRequester) Do(req *http.Request) (*http.Response, error) {
+	return m.doFunc(req)
+}
+
+func makeGeminiTestChunk(text string) string {
+	inner := make([]any, 5)
+	inner[0] = strings.Repeat("metadata_filler_string_", 10)
+	inner[4] = []any{[]any{"c_1", []any{text}}}
+	innerBytes, _ := json.Marshal(inner)
+	outer := []any{[]any{"wrb.fr", nil, string(innerBytes)}}
+	lineBytes, _ := json.Marshal(outer)
+	return string(lineBytes) + "\n"
+}
+
+func TestModelsEndpoint(t *testing.T) {
+	cfg := config.Default()
+	app := New(cfg, "test")
+	handler := app.Handler()
+
+	req := httptest.NewRequest("GET", "/v1/models", nil)
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("Expected 200, got %d", rec.Code)
+	}
+	var res map[string]any
+	if err := json.Unmarshal(rec.Body.Bytes(), &res); err != nil {
+		t.Fatalf("Invalid JSON: %v", err)
+	}
+	if res["object"] != "list" {
+		t.Errorf("Expected object=list, got %v", res["object"])
+	}
+	data, ok := res["data"].([]any)
+	if !ok || len(data) == 0 {
+		t.Errorf("Expected non-empty data array, got %v", res["data"])
+	}
+}
+
+func TestGoogleModelsEndpoint(t *testing.T) {
+	cfg := config.Default()
+	app := New(cfg, "test")
+	handler := app.Handler()
+
+	req := httptest.NewRequest("GET", "/v1beta/models", nil)
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("Expected 200, got %d", rec.Code)
+	}
+	var res map[string]any
+	if err := json.Unmarshal(rec.Body.Bytes(), &res); err != nil {
+		t.Fatalf("Invalid JSON: %v", err)
+	}
+	modelsList, ok := res["models"].([]any)
+	if !ok || len(modelsList) == 0 {
+		t.Errorf("Expected non-empty models array, got %v", res["models"])
+	}
+}
+
+func TestGoogleGenerate_Validation(t *testing.T) {
+	cfg := config.Default()
+	app := New(cfg, "test")
+	handler := app.Handler()
+
+	// 1. Invalid JSON body -> 400
+	req1 := httptest.NewRequest("POST", "/v1beta/models/gemini-3.8-flash:generateContent", strings.NewReader("{invalid"))
+	rec1 := httptest.NewRecorder()
+	handler.ServeHTTP(rec1, req1)
+	if rec1.Code != http.StatusBadRequest {
+		t.Errorf("Expected 400 for invalid JSON, got %d", rec1.Code)
+	}
+
+	// 2. Empty contents -> 400
+	req2 := httptest.NewRequest("POST", "/v1beta/models/gemini-3.8-flash:generateContent", strings.NewReader(`{"contents":[]}`))
+	rec2 := httptest.NewRecorder()
+	handler.ServeHTTP(rec2, req2)
+	if rec2.Code != http.StatusBadRequest {
+		t.Errorf("Expected 400 for empty contents, got %d", rec2.Code)
+	}
+}
+
+func TestChatCompletions_Streaming_EndToEnd(t *testing.T) {
+	cfg := config.Default()
+	app := New(cfg, "test")
+
+	// Inject mock HTTP requester that yields simulated Gemini streaming chunks
+	mockRespBody := io.NopCloser(strings.NewReader(
+		makeGeminiTestChunk("Hello") +
+			makeGeminiTestChunk("Hello world") +
+			makeGeminiTestChunk("Hello world from Gemini!"),
+	))
+
+	app.Gem.HTTP = &mockRequester{
+		doFunc: func(req *http.Request) (*http.Response, error) {
+			return &http.Response{
+				StatusCode: http.StatusOK,
+				Body:       mockRespBody,
+				Header:     make(http.Header),
+			}, nil
+		},
+	}
+
+	handler := app.Handler()
+	body := `{"model":"gemini-3.8-flash","stream":true,"messages":[{"role":"user","content":"Hi"}]}`
+	req := httptest.NewRequest("POST", "/v1/chat/completions", strings.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	rec := httptest.NewRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("Expected 200, got %d: %s", rec.Code, rec.Body.String())
+	}
+
+	output := rec.Body.String()
+	if !strings.Contains(output, "data: [DONE]") {
+		t.Errorf("Missing [DONE] in SSE output: %s", output)
+	}
+	if !strings.Contains(output, "Hello") || !strings.Contains(output, "world") {
+		t.Errorf("Missing expected streamed delta tokens in output: %s", output)
 	}
 }
