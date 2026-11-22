@@ -56,3 +56,59 @@ func TestBuildURLWithBLOverride(t *testing.T) {
 		t.Errorf("BuildURL with override should use override, got %s", url2)
 	}
 }
+
+func TestUUIDV4_FormatAndUniqueness(t *testing.T) {
+	seen := make(map[string]bool, 1000)
+	for i := 0; i < 1000; i++ {
+		u := uuidV4()
+		if len(u) != 36 {
+			t.Fatalf("uuidV4() length = %d, want 36", len(u))
+		}
+		if u[8] != '-' || u[13] != '-' || u[18] != '-' || u[23] != '-' {
+			t.Fatalf("uuidV4() malformed dashes: %s", u)
+		}
+		// Version 4 check
+		if u[14] != '4' {
+			t.Fatalf("uuidV4() version byte = %c, want 4", u[14])
+		}
+		// Variant 10xx check (8, 9, a, or b in hex)
+		variant := u[19]
+		if variant != '8' && variant != '9' && variant != 'a' && variant != 'b' {
+			t.Fatalf("uuidV4() variant byte = %c, want 8, 9, a, or b", variant)
+		}
+		if seen[u] {
+			t.Fatalf("uuidV4() generated collision: %s", u)
+		}
+		seen[u] = true
+	}
+}
+
+func TestUpperUUIDV4_FormatAndUniqueness(t *testing.T) {
+	seen := make(map[string]bool, 1000)
+	for i := 0; i < 1000; i++ {
+		u := upperUUIDV4()
+		if len(u) != 36 {
+			t.Fatalf("upperUUIDV4() length = %d, want 36", len(u))
+		}
+		if u[8] != '-' || u[13] != '-' || u[18] != '-' || u[23] != '-' {
+			t.Fatalf("upperUUIDV4() malformed dashes: %s", u)
+		}
+		if u[14] != '4' {
+			t.Fatalf("upperUUIDV4() version byte = %c, want 4", u[14])
+		}
+		variant := u[19]
+		if variant != '8' && variant != '9' && variant != 'A' && variant != 'B' {
+			t.Fatalf("upperUUIDV4() variant byte = %c, want 8, 9, A, or B", variant)
+		}
+		// Check that all letters are uppercase
+		for _, ch := range u {
+			if ch >= 'a' && ch <= 'z' {
+				t.Fatalf("upperUUIDV4() contains lowercase char: %s", u)
+			}
+		}
+		if seen[u] {
+			t.Fatalf("upperUUIDV4() generated collision: %s", u)
+		}
+		seen[u] = true
+	}
+}

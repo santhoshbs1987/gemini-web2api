@@ -21,10 +21,11 @@ type CookieInfo struct {
 }
 
 type CookieCache struct {
-	mu    sync.Mutex
-	file  string
-	mtime time.Time
-	info  CookieInfo
+	mu       sync.RWMutex
+	file     string
+	mtime    time.Time
+	lastStat time.Time
+	info     CookieInfo
 }
 
 func NewCookieCache(file string) *CookieCache {
@@ -36,8 +37,22 @@ func (c *CookieCache) Load() (CookieInfo, error) {
 		return CookieInfo{}, nil
 	}
 
+	c.mu.RLock()
+	if c.info.Cookie != "" && time.Since(c.lastStat) < 3*time.Second {
+		info := c.info
+		c.mu.RUnlock()
+		return info, nil
+	}
+	c.mu.RUnlock()
+
 	c.mu.Lock()
 	defer c.mu.Unlock()
+
+	// Double check under write lock
+	if c.info.Cookie != "" && time.Since(c.lastStat) < 3*time.Second {
+		return c.info, nil
+	}
+	c.lastStat = time.Now()
 
 	stat, err := os.Stat(c.file)
 	if err != nil {

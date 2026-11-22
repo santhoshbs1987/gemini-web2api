@@ -39,6 +39,13 @@ func (c *Client) DiscoveredModels() []DiscoveredModel {
 	return res
 }
 
+// ModelsGen returns the current generation counter for discovered models.
+func (c *Client) ModelsGen() uint64 {
+	c.modelsMu.RLock()
+	defer c.modelsMu.RUnlock()
+	return c.modelsGen
+}
+
 // EnsureModelsDiscovered performs dynamic model discovery if cookies are configured.
 // It is thread-safe and retries on failure after a 60-second cooldown.
 func (c *Client) EnsureModelsDiscovered() {
@@ -125,7 +132,7 @@ func (c *Client) DiscoverModels() ([]DiscoveredModel, error) {
 	}
 
 	req.Header = c.buildHeaders()
-	batchUUID := strings.ToUpper(uuidV4())
+	batchUUID := upperUUIDV4()
 	hdr, _ := json.Marshal([]any{1, nil, nil, nil, nil, nil, nil, nil, []int{4, 5, 6, 8}, nil, nil, nil, nil, nil, nil, nil, batchUUID})
 	req.Header.Set(ModelHeaderKey, string(hdr))
 	req.Header.Set(HeaderJspb89, "[0]")
@@ -183,6 +190,7 @@ func (c *Client) DiscoverModels() ([]DiscoveredModel, error) {
 
 	c.modelsMu.Lock()
 	c.discovered = models
+	c.modelsGen++
 	c.accountCap = capacity
 	c.accountCapFld = field
 	c.modelsMu.Unlock()

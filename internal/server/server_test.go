@@ -270,3 +270,64 @@ func TestDynamicModelsFrom(t *testing.T) {
 		t.Errorf("expected 2 dynamic models after dedupe/filter, got %d: %+v", len(got), got)
 	}
 }
+
+func TestWriteSSEData_ProtocolFormat(t *testing.T) {
+	rec := httptest.NewRecorder()
+	payload := map[string]string{"message": "hello world"}
+
+	if err := writeSSEData(rec, payload); err != nil {
+		t.Fatalf("writeSSEData failed: %v", err)
+	}
+
+	got := rec.Body.String()
+	want := "data: {\"message\":\"hello world\"}\n\n"
+	if got != want {
+		t.Errorf("writeSSEData format mismatch:\ngot:  %q\nwant: %q", got, want)
+	}
+}
+
+func TestWriteSSEEvent_ProtocolFormat(t *testing.T) {
+	rec := httptest.NewRecorder()
+	payload := map[string]string{"status": "in_progress"}
+
+	if err := writeSSEEvent(rec, "update", payload); err != nil {
+		t.Fatalf("writeSSEEvent failed: %v", err)
+	}
+
+	got := rec.Body.String()
+	want := "event: update\ndata: {\"status\":\"in_progress\"}\n\n"
+	if got != want {
+		t.Errorf("writeSSEEvent format mismatch:\ngot:  %q\nwant: %q", got, want)
+	}
+}
+
+func TestWriteSSEDone_ProtocolFormat(t *testing.T) {
+	rec := httptest.NewRecorder()
+
+	if err := writeSSEDone(rec); err != nil {
+		t.Fatalf("writeSSEDone failed: %v", err)
+	}
+
+	got := rec.Body.String()
+	want := "data: [DONE]\n\n"
+	if got != want {
+		t.Errorf("writeSSEDone format mismatch:\ngot:  %q\nwant: %q", got, want)
+	}
+}
+
+func TestDynamicModelsCaching(t *testing.T) {
+	cfg := config.Default()
+	app := New(cfg, "test")
+
+	// Call dynamicModels twice
+	m1 := app.dynamicModels()
+	m2 := app.dynamicModels()
+
+	// Both should point to the exact same cached slice header in memory
+	if len(m1) != len(m2) {
+		t.Errorf("expected same length, got %d and %d", len(m1), len(m2))
+	}
+	if len(m1) > 0 && &m1[0] != &m2[0] {
+		t.Errorf("expected cached slice to be reused")
+	}
+}

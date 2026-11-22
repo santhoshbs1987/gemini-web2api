@@ -46,6 +46,7 @@ type Client struct {
 
 	modelsMu      sync.RWMutex
 	discovered    []DiscoveredModel
+	modelsGen     uint64
 	accountCap    int
 	accountCapFld int
 	discMu        sync.Mutex
@@ -65,7 +66,10 @@ func NewClient(cfg config.Config) *Client {
 
 	if req == nil {
 		transport := &http.Transport{
-			DisableCompression: true,
+			DisableCompression:  true,
+			MaxIdleConns:        100,
+			MaxIdleConnsPerHost: 100,
+			IdleConnTimeout:     90 * time.Second,
 		}
 
 		if cfg.Proxy != "" {
@@ -208,7 +212,7 @@ func (c *Client) Generate(prompt string, opt ModelOptions, fileRefs []string) (s
 		cfg.AuthUser = cookieInfo.AuthUser
 	}
 
-	reqUUID := strings.ToUpper(uuidV4())
+	reqUUID := upperUUIDV4()
 	extra := make(map[int]any, len(opt.Extra)+1)
 	for k, v := range opt.Extra {
 		extra[k] = v
@@ -291,7 +295,7 @@ func (c *Client) GenerateStream(prompt string, opt ModelOptions, fileRefs []stri
 		cfg.AuthUser = cookieInfo.AuthUser
 	}
 
-	reqUUID := strings.ToUpper(uuidV4())
+	reqUUID := upperUUIDV4()
 	extra := make(map[int]any, len(opt.Extra)+1)
 	for k, v := range opt.Extra {
 		extra[k] = v

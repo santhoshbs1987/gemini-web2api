@@ -14,8 +14,12 @@ var (
 )
 
 func CleanText(text string, strip bool) string {
-	text = reCodeExec.ReplaceAllString(text, "")
-	text = reCardContent.ReplaceAllString(text, "")
+	if strings.Contains(text, "```") {
+		text = reCodeExec.ReplaceAllString(text, "")
+	}
+	if strings.Contains(text, "card_content/") {
+		text = reCardContent.ReplaceAllString(text, "")
+	}
 	if strip {
 		return strings.TrimSpace(text)
 	}
@@ -75,6 +79,9 @@ func ExtractTextsFromLine(line string) []string {
 }
 
 func IsBardError(raw string) (string, bool) {
+	if !strings.Contains(raw, "BardErrorInfo") {
+		return "", false
+	}
 	match := reBardError.FindStringSubmatch(raw)
 	if len(match) > 1 {
 		return match[1], true

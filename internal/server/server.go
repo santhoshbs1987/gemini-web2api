@@ -4,10 +4,12 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"sync"
 	"time"
 
 	"github.com/ikhsan3adi/gemini-web2api/internal/config"
 	"github.com/ikhsan3adi/gemini-web2api/internal/gemini"
+	"github.com/ikhsan3adi/gemini-web2api/internal/models"
 	"github.com/ikhsan3adi/gemini-web2api/internal/multimodal"
 )
 
@@ -18,10 +20,19 @@ type App struct {
 	HTTPClient *http.Client
 	Logf       func(format string, args ...any)
 	Version    string
+
+	dynMu      sync.RWMutex
+	dynCached  []models.DynamicModel
+	dynLastGen uint64
+	dynInit    bool
 }
 
 func createHTTPClient(cfg config.Config) *http.Client {
-	transport := &http.Transport{}
+	transport := &http.Transport{
+		MaxIdleConns:        100,
+		MaxIdleConnsPerHost: 100,
+		IdleConnTimeout:     90 * time.Second,
+	}
 	if cfg.Proxy != "" {
 		if proxyURL, err := url.Parse(cfg.Proxy); err == nil {
 			transport.Proxy = http.ProxyURL(proxyURL)

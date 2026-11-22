@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"sync"
 
 	"github.com/ikhsan3adi/gemini-web2api/internal/format"
 	"github.com/ikhsan3adi/gemini-web2api/internal/gemini"
@@ -31,7 +32,25 @@ func (a *App) dynamicModels() []models.DynamicModel {
 	if a.Gem == nil {
 		return nil
 	}
-	return dynamicModelsFrom(a.Gem.DiscoveredModels())
+	gen := a.Gem.ModelsGen()
+	a.dynMu.RLock()
+	if a.dynInit && gen == a.dynLastGen {
+		cached := a.dynCached
+		a.dynMu.RUnlock()
+		return cached
+	}
+	a.dynMu.RUnlock()
+
+	a.dynMu.Lock()
+	defer a.dynMu.Unlock()
+	if a.dynInit && gen == a.dynLastGen {
+		return a.dynCached
+	}
+	discovered := a.Gem.DiscoveredModels()
+	a.dynCached = dynamicModelsFrom(discovered)
+	a.dynLastGen = gen
+	a.dynInit = true
+	return a.dynCached
 }
 
 func dynamicModelsFrom(discovered []gemini.DiscoveredModel) []models.DynamicModel {
@@ -69,9 +88,26 @@ func writeJSON(w http.ResponseWriter, status int, data any) {
 	_ = enc.Encode(data)
 }
 
+var bufPool = sync.Pool{
+	New: func() any {
+		return new(bytes.Buffer)
+	},
+}
+
+const maxPooledBufSize = 64 * 1024
+
+func putBuffer(buf *bytes.Buffer) {
+	if buf.Cap() <= maxPooledBufSize {
+		bufPool.Put(buf)
+	}
+}
+
 func marshalNoEscapeHTML(data any) ([]byte, error) {
-	var buf bytes.Buffer
-	enc := json.NewEncoder(&buf)
+	buf := bufPool.Get().(*bytes.Buffer)
+	buf.Reset()
+	defer putBuffer(buf)
+
+	enc := json.NewEncoder(buf)
 	enc.SetEscapeHTML(false)
 	if err := enc.Encode(data); err != nil {
 		return nil, err
@@ -80,7 +116,9 @@ func marshalNoEscapeHTML(data any) ([]byte, error) {
 	if len(b) > 0 && b[len(b)-1] == '\n' {
 		b = b[:len(b)-1]
 	}
-	return b, nil
+	res := make([]byte, len(b))
+	copy(res, b)
+	return res, nil
 }
 
 func startSSE(w http.ResponseWriter) bool {
@@ -96,13 +134,19 @@ func startSSE(w http.ResponseWriter) bool {
 }
 
 func writeSSEData(w http.ResponseWriter, data any) error {
-	enc, err := marshalNoEscapeHTML(data)
-	if err != nil {
+	buf := bufPool.Get().(*bytes.Buffer)
+	buf.Reset()
+	defer putBuffer(buf)
+
+	buf.WriteString("data: ")
+	enc := json.NewEncoder(buf)
+	enc.SetEscapeHTML(false)
+	if err := enc.Encode(data); err != nil {
 		return err
 	}
+	buf.WriteByte('\n')
 
-	_, err = fmt.Fprintf(w, "data: %s\n\n", string(enc))
-	if err != nil {
+	if _, err := w.Write(buf.Bytes()); err != nil {
 		return err
 	}
 
@@ -113,13 +157,22 @@ func writeSSEData(w http.ResponseWriter, data any) error {
 }
 
 func writeSSEEvent(w http.ResponseWriter, event string, data any) error {
-	enc, err := marshalNoEscapeHTML(data)
-	if err != nil {
+	buf := bufPool.Get().(*bytes.Buffer)
+	buf.Reset()
+	defer putBuffer(buf)
+
+	buf.WriteString("event: ")
+	buf.WriteString(event)
+	buf.WriteString("\ndata: ")
+
+	enc := json.NewEncoder(buf)
+	enc.SetEscapeHTML(false)
+	if err := enc.Encode(data); err != nil {
 		return err
 	}
+	buf.WriteByte('\n')
 
-	_, err = fmt.Fprintf(w, "event: %s\ndata: %s\n\n", event, string(enc))
-	if err != nil {
+	if _, err := w.Write(buf.Bytes()); err != nil {
 		return err
 	}
 
@@ -130,8 +183,7 @@ func writeSSEEvent(w http.ResponseWriter, event string, data any) error {
 }
 
 func writeSSEDone(w http.ResponseWriter) error {
-	_, err := fmt.Fprintf(w, "data: [DONE]\n\n")
-	if err != nil {
+	if _, err := w.Write([]byte("data: [DONE]\n\n")); err != nil {
 		return err
 	}
 	if flusher, ok := w.(http.Flusher); ok {
